@@ -11,9 +11,9 @@ import random
 import numpy as np
 import os
 
-images_dir = '/data/teeth/'
-anno_path = '/home/xiangdawei/crowddet_teeth/teethcode_2021_jan30/1_936_nov_18.csv'
-output_path = '/home/xiangdawei/crowddet_teeth/teethcode_2021_jan30/1_936_nov_18_460train_output.csv'
+images_dir = '/data/shimr/teeth/'
+anno_path = '/home/shimr/teeth_angle/1_936_nov_18.csv'
+output_path = '/home/shimr/teeth_angle/1_936_nov_18_460train_output.csv'
 
 
 def crop_image(in_path,out_path):
@@ -67,11 +67,11 @@ for line in r:
         if former_id == patient_id:
             line[2] = last_flag
             former_id = patient_id
-        elif ran < 0.5:
+        elif ran <= 0.8:
           line[2] = 'train'
           last_flag = 'train'
           former_id = patient_id
-        elif ran > 0.87:
+        elif ran > 0.8:
           line[2] = 'test'
           last_flag = 'test'
           former_id = patient_id
