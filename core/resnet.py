@@ -107,6 +107,7 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AvgPool2d(7)
+        
         #self.fc = []
         #for i in range(num_classes):
         #    self.fc.append(nn.Linear(512 * block.expansion, num_classes))
@@ -161,7 +162,7 @@ class ResNet(nn.Module):
         x = self.fc(x)
         out = x
         
-        return out
+        return out, feature1
 
 class ResNet2(nn.Module):
     def __init__(self, block, layers, num_classes=1):

@@ -5,10 +5,12 @@ import torch.utils.data
 from torch.nn import DataParallel
 from datetime import datetime
 from torch.optim.lr_scheduler import MultiStepLR
-from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir, max_epoch, need_attributes_idx,use_uniform_mean,anno_csv_path, use_gpu, save_name, model_size, predtrain
+from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir, max_epoch, need_attributes_idx,use_uniform_mean,anno_csv_path, use_gpu, save_name, model_size, predtrain,loss_weight_mask_thres, model_name
 from core import model, dataset,resnet
 from core.utils import init_log, progress_bar
 import pandas as pd
+import torchvision.models  
+
 
 os.environ['CUDA_VISIBLE_DEVICES'] = use_gpu
 start_epoch = 0
@@ -32,15 +34,28 @@ testloader = torch.utils.data.DataLoader(testset)
 # define model
 num_of_need_attri = len(need_attributes_idx)
 print("use attribute",need_attributes_idx)
-
-if model_size == '50':
-    net = resnet.resnet50(pretrained=predtrain, num_classes = num_of_need_attri )
-elif model_size == '34':
-    net = resnet.resnet34(pretrained=predtrain, num_classes = num_of_need_attri )
-elif model_size == '101':
-    net = resnet.resnet101(pretrained=predtrain, num_classes = num_of_need_attri )
-elif model_size == '152':
-    net = resnet.resnet152(pretrained=predtrain, num_classes = num_of_need_attri )
+if model_name == 'resnet':
+    if model_size == '50':
+        net = resnet.resnet50(pretrained=predtrain, num_classes = num_of_need_attri )
+    elif model_size == '34':
+        net = resnet.resnet34(pretrained=predtrain, num_classes = num_of_need_attri )
+    elif model_size == '101':
+        net = resnet.resnet101(pretrained=predtrain, num_classes = num_of_need_attri )
+    elif model_size == '152':
+        net = resnet.resnet152(pretrained=predtrain, num_classes = num_of_need_attri )
+        
+elif model_name == 'vgg':
+    if model_size == '11':
+        net = torchvision.models.vgg11_bn(pretrained=predtrain, num_classes = num_of_need_attri )
+    elif model_size == '16':
+        net = torchvision.models.vgg16_bn(pretrained=predtrain, num_classes = num_of_need_attri )
+    elif model_size == '16_nobn':
+        net = torchvision.models.vgg16(pretrained=predtrain, num_classes = num_of_need_attri )
+    elif model_size == '19':
+        net = torchvision.models.vgg19_bn(pretrained=predtrain, num_classes = num_of_need_attri )
+        
+elif model_name == "resnext101_32x8d":
+    net = torchvision.models.resnext101_32x8d(pretrained=predtrain, num_classes = num_of_need_attri )
     
 
 if resume:
@@ -64,7 +79,6 @@ head=['train_loss_unit_degree','train_ori_loss_unit_std','test_loss','test_ori_l
 
 
 
-
 for epoch in range(start_epoch, max_epoch):
     for scheduler in schedulers:
         scheduler.step()
@@ -75,14 +89,24 @@ for epoch in range(start_epoch, max_epoch):
     train_num = 0
     train_loss = 0
     train_ori_loss = 0
+    seg_dict = {1:0,2:0,5:0,10:0}
+
     for i, data in enumerate(trainloader):
         img, target = data[0].cuda(), data[1].cuda()
         batch_size = img.size(0)
         print("batch size",batch_size)
         train_num += batch_size
         raw_optimizer.zero_grad()
-        output = net(img)
-        loss = creterion(output, target)
+        output,features = net(img)
+        
+        loss = torch.abs(output - target).reshape(-1)
+        weight = torch.ones(loss.shape[0],1).cuda()
+        #weight[loss> torch.tensor(loss_weight_mask_thres/trainset.attributes_std[use_uniform_mean]).cuda().reshape(-1)] = 0.5
+        #print("loss",loss)
+        #print("weight",weight)
+        loss = loss * weight
+        loss = loss.sum()
+        
         ori_delta = (output-target).abs().cpu().detach().numpy()
         ori_delta_mean = ori_delta.mean()
         if train_num %100 ==0 and np.random.random()<0.1:
@@ -120,7 +144,7 @@ for epoch in range(start_epoch, max_epoch):
                 #print('test batch size',batch_size)#bs=1
                 test_num += batch_size
                 raw_optimizer.zero_grad()
-                output= net(img)
+                output,features= net(img)
                 # calculate loss
                 #print("target",target)
                 #print("target type",type(target))
@@ -130,6 +154,16 @@ for epoch in range(start_epoch, max_epoch):
                 #loss = creterion(output, target)
                 ori_delta = (output-target).abs().cpu().numpy()
                 unnorm_delta = ori_delta * (trainset.attributes_std[use_uniform_mean]).reshape(-1)
+                """
+                if unnorm_delta[-1] <=1 :
+                    seg_dict[1] +=1
+                elif unnorm_delta[-1] <=2.5:
+                    seg_dict[2] +=1
+                elif unnorm_delta[-1] <=5:
+                    seg_dict[5] +=1
+                elif unnorm_delta[-1] <=10:
+                    seg_dict[10] +=1
+                """
                 #loss is the mean distance between two tensor
                 test_loss += unnorm_delta.mean()*batch_size
                 test_ori_loss += ori_delta.mean()*batch_size
