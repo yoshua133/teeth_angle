@@ -5,7 +5,7 @@ import torch.utils.data
 from torch.nn import DataParallel
 from datetime import datetime
 from torch.optim.lr_scheduler import MultiStepLR
-from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir, max_epoch, need_attributes_idx,use_uniform_mean,anno_csv_path, use_gpu, save_name, model_size, predtrain,loss_weight_mask_thres, model_name
+from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir, max_epoch, need_attributes_idx,use_uniform_mean,anno_csv_path, use_gpu, save_name, model_size, pretrain,loss_weight_mask_thres, model_name, bigger
 from core import model, dataset,resnet
 from core.utils import init_log, progress_bar
 import pandas as pd
@@ -36,26 +36,30 @@ num_of_need_attri = len(need_attributes_idx)
 print("use attribute",need_attributes_idx)
 if model_name == 'resnet':
     if model_size == '50':
-        net = resnet.resnet50(pretrained=predtrain, num_classes = num_of_need_attri )
+            net = resnet.resnet50(pretrained=pretrain, num_classes = num_of_need_attri,bigger=bigger )
+        
     elif model_size == '34':
-        net = resnet.resnet34(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = resnet.resnet34(pretrained=pretrain, num_classes = num_of_need_attri )
     elif model_size == '101':
-        net = resnet.resnet101(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = resnet.resnet50(pretrained=pretrain, num_classes = num_of_need_attri,bigger=bigger )
     elif model_size == '152':
-        net = resnet.resnet152(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = resnet.resnet152(pretrained=pretrain, num_classes = num_of_need_attri )
         
 elif model_name == 'vgg':
     if model_size == '11':
-        net = torchvision.models.vgg11_bn(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = torchvision.models.vgg11_bn(pretrained=pretrain, num_classes = num_of_need_attri )
     elif model_size == '16':
-        net = torchvision.models.vgg16_bn(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = torchvision.models.vgg16_bn(pretrained=pretrain, num_classes = num_of_need_attri )
     elif model_size == '16_nobn':
-        net = torchvision.models.vgg16(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = torchvision.models.vgg16(pretrained=pretrain, num_classes = num_of_need_attri )
     elif model_size == '19':
-        net = torchvision.models.vgg19_bn(pretrained=predtrain, num_classes = num_of_need_attri )
+        net = torchvision.models.vgg19_bn(pretrained=pretrain, num_classes = num_of_need_attri )
         
 elif model_name == "resnext101_32x8d":
-    net = torchvision.models.resnext101_32x8d(pretrained=predtrain, num_classes = num_of_need_attri )
+    net = torchvision.models.resnext101_32x8d(pretrained=pretrain, num_classes = num_of_need_attri )
+
+elif model_name == "inception_v3":
+    net = torchvision.models.inception_v3(pretrained=pretrain, num_classes = num_of_need_attri, aux_logits =False )
     
 
 if resume:
@@ -97,7 +101,10 @@ for epoch in range(start_epoch, max_epoch):
         print("batch size",batch_size)
         train_num += batch_size
         raw_optimizer.zero_grad()
-        output,features = net(img)
+        if model_name == 'resnet':
+            output,features = net(img)
+        else:
+            output = net(img)
         
         loss = torch.abs(output - target).reshape(-1)
         weight = torch.ones(loss.shape[0],1).cuda()
@@ -144,7 +151,10 @@ for epoch in range(start_epoch, max_epoch):
                 #print('test batch size',batch_size)#bs=1
                 test_num += batch_size
                 raw_optimizer.zero_grad()
-                output,features= net(img)
+                if model_name == 'resnet':
+                    output,features = net(img)
+                else:
+                    output = net(img)
                 # calculate loss
                 #print("target",target)
                 #print("target type",type(target))

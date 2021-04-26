@@ -136,7 +136,7 @@ class tooth_dataset_train():
         #print('ind',index)
         #print(len(self.images[cur_use_attri]))
         img = self.images[cur_use_attri][index] #cv2.imread(self.images_path[use_attribut][index])
-        img = cv2.resize(img, (224,224), interpolation = cv2.INTER_AREA)
+        img = cv2.resize(img, (INPUT_SIZE[0],INPUT_SIZE[1]), interpolation = cv2.INTER_AREA)
         img = trans(img)
         img = img.transpose(2,0,1)      
         target = (self.attributes[cur_use_attri][index] - self.attributes_mean[use_uniform_mean])/self.attributes_std[use_uniform_mean]
@@ -258,7 +258,7 @@ class tooth_dataset_test():
             index = index - (self.index_21)#+1)
         
         img = self.images[cur_use_attri][index] #cv2.imread(self.images_path[use_attribut][index])
-        img = cv2.resize(img, (224,224), interpolation = cv2.INTER_AREA)
+        img = cv2.resize(img, (INPUT_SIZE[0], INPUT_SIZE[1]), interpolation = cv2.INTER_AREA)
         img = img.transpose(2,0,1)
         target = (self.attributes[cur_use_attri][index] - self.attributes_mean[use_uniform_mean])/self.attributes_std[use_uniform_mean]
         return torch.tensor(img).float(), torch.tensor(target).float(), cur_use_attri,  self.patient_idx[cur_use_attri][index]
@@ -381,7 +381,7 @@ class tooth_dataset_train_test():
         #print('ind',index)
         #print(len(self.images[cur_use_attri]))
         img = self.images[cur_use_attri][index] #cv2.imread(self.images_path[use_attribut][index])
-        img = cv2.resize(img, (224,224), interpolation = cv2.INTER_AREA)
+        img = cv2.resize(img, (INPUT_SIZE[0], INPUT_SIZE[1]), interpolation = cv2.INTER_AREA)
         img = img.transpose(2,0,1)
         target = (self.attributes[cur_use_attri][index] - self.attributes_mean[use_uniform_mean])/self.attributes_std[use_uniform_mean]
         return torch.tensor(img).float(), torch.tensor(target).float(),cur_use_attri, self.patient_idx[cur_use_attri][index]

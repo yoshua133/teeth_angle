@@ -93,7 +93,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes=1):
+    def __init__(self, block, layers, num_classes=1, bigger=False):
         self.inplanes = 64
         super(ResNet, self).__init__()
         self.num_classes = num_classes
@@ -106,8 +106,13 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        self.avgpool = nn.AvgPool2d(7)
-        
+        if bigger:
+            size = 14 
+                      
+        else:
+            size = 7
+        #print("size",size,bigger)
+        self.avgpool = nn.AvgPool2d(size)
         #self.fc = []
         #for i in range(num_classes):
         #    self.fc.append(nn.Linear(512 * block.expansion, num_classes))
@@ -150,7 +155,9 @@ class ResNet(nn.Module):
         x = self.layer3(x)
         x = self.layer4(x)
         feature1 = x
+        #print("before avg pool",x.shape)
         x = self.avgpool(x)
+        #print("after avg pool",x.shape)
         x = x.view(x.size(0), -1)
         x = nn.Dropout(p=0.5)(x)
         feature2 = x

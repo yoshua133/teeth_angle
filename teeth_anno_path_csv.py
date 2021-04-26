@@ -12,15 +12,15 @@ import numpy as np
 import os
 
 images_dir = '/data/shimr/teeth/'
-anno_path = '/home/shimr/teeth_new/1_936_nov_18.csv'
-output_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/1_936_mar_20_crop_0_725train.csv'
+anno_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2.csv'
+output_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2_crop_1_725train.csv'
 
 
 def crop_image(in_path,out_path):
   #print(in_path)
   img = cv2.imread(in_path)
   #print(img.shape)
-  cropped = img[100:707,673:1280,:]#[310:497,719:919,:]#[310:497,719:1023,:]#[100:707,673:1280,:]
+  cropped = img[310:497,719:1023,:]#[310:497,719:919,:]#[310:497,719:1023,:]#[100:707,673:1280,:]
   #cropped = img[50:727,623:1280,:]
   cv2.imwrite(out_path, cropped)
 
@@ -30,12 +30,12 @@ csv_num=0
 r = csv.reader(open(anno_path))
 #lines = [l for l in r]
 #print(lines)
-teeth_row = 3
+teeth_row = 3 #必须是3 因为dataset.py中读数据的row是固定的  
 patient_row = 0
 output_csv = []
 former_id = -1
 last_flag = 'unknown'
-prefix = "cropped_image_a"
+prefix = "cropped_image"
 for line in r:
     csv_num+=1
     if csv_num ==1 :#or csv_num>2:
@@ -88,5 +88,3 @@ for line in r:
 
 writer = csv.writer(open(output_path,'w'))
 writer.writerows(output_csv)
-
-
