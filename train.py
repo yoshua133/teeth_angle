@@ -94,11 +94,12 @@ for epoch in range(start_epoch, max_epoch):
     train_loss = 0
     train_ori_loss = 0
     seg_dict = {1:0,2:0,5:0,10:0}
-
+    #print("before train")
     for i, data in enumerate(trainloader):
+        #print("in train")
         img, target = data[0].cuda(), data[1].cuda()
         batch_size = img.size(0)
-        print("batch size",batch_size)
+        #print("batch size",batch_size)
         train_num += batch_size
         raw_optimizer.zero_grad()
         if model_name == 'resnet':
@@ -194,6 +195,7 @@ for epoch in range(start_epoch, max_epoch):
         f2 = open(file_dir+'/{}_std.txt'.format(save_name),'w')
         f2.write(str(trainset.attributes_std))
         f2.close()
-
+        print("finish writing")
         net_state_dict = net.state_dict()
         torch.save(net_state_dict,save_dir+'/model_param.pkl')
+        print("finish save")

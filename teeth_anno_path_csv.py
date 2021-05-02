@@ -13,7 +13,7 @@ import os
 
 images_dir = '/data/shimr/teeth/'
 anno_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2.csv'
-output_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2_crop_1_725train.csv'
+output_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2_crop_1_375train.csv'
 
 
 def crop_image(in_path,out_path):
@@ -68,7 +68,7 @@ for line in r:
         if former_id == patient_id:
             line[2] = last_flag
             former_id = patient_id
-        elif ran <= 0.8:
+        elif ran <= 0.4:
           line[2] = 'train'
           last_flag = 'train'
           former_id = patient_id

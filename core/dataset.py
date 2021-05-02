@@ -140,6 +140,7 @@ class tooth_dataset_train():
         img = trans(img)
         img = img.transpose(2,0,1)      
         target = (self.attributes[cur_use_attri][index] - self.attributes_mean[use_uniform_mean])/self.attributes_std[use_uniform_mean]
+        #print("index",index)
         return torch.tensor(img).float(), torch.tensor(target).float()
         """
         if self.is_train:

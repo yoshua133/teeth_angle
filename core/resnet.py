@@ -145,6 +145,7 @@ class ResNet(nn.Module):
     #import torchsnooper
     #@torchsnooper.snoop()
     def forward(self, x):
+        #print("input shape",x.shape)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
