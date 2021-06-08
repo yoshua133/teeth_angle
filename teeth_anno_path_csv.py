@@ -11,9 +11,10 @@ import random
 import numpy as np
 import os
 
+pation = 1
 images_dir = '/data/shimr/teeth/'
 anno_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2.csv'
-output_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/apr14_936_after_revise2_crop_1_375train.csv'
+output_path = '/home/shimr/teeth_new/crowddet_teeth/teethcode_2021_jan30/may9_936_after_revise2_crop_1_{}train_kfold_twice.csv'.format(int(725*pation))
 
 
 def crop_image(in_path,out_path):
@@ -24,13 +25,13 @@ def crop_image(in_path,out_path):
   #cropped = img[50:727,623:1280,:]
   cv2.imwrite(out_path, cropped)
 
-np.random.seed(0)
+np.random.seed(0) #22
 
 csv_num=0
 r = csv.reader(open(anno_path))
 #lines = [l for l in r]
 #print(lines)
-teeth_row = 3 #必须是3 因为dataset.py中读数据的row是固定的  
+teeth_row = 3 #必须�? 因为dataset.py中读数据的row是固定的  
 patient_row = 0
 output_csv = []
 former_id = -1
@@ -65,9 +66,17 @@ for line in r:
         #crop_image(tooth_tif_path,cropped_path)
         line[1] =  cropped_path
         ran = np.random.rand(1)
+        ran2 = np.random.rand(1)
         if former_id == patient_id:
             line[2] = last_flag
             former_id = patient_id
+        else:
+            line[2] = int(ran/0.2)
+            if ran2>pation:
+                line[2] = str(int(ran/0.2))+"val"
+            last_flag = line[2]
+            former_id = patient_id
+        """
         elif ran <= 0.4:
           line[2] = 'train'
           last_flag = 'train'
@@ -80,7 +89,7 @@ for line in r:
           line[2] = 'val'
           last_flag = 'val'
           former_id = patient_id
-
+        """
         crop_image(tooth_tif_path,cropped_path)
         output_csv.append(line)
     else:

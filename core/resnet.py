@@ -170,7 +170,7 @@ class ResNet(nn.Module):
         x = self.fc(x)
         out = x
         
-        return out, feature1
+        return out#, feature1
 
 class ResNet2(nn.Module):
     def __init__(self, block, layers, num_classes=1):

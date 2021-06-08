@@ -43,7 +43,7 @@ def is_number(s):
 
 
 class tooth_dataset_train():
-    def __init__(self, anno_path, is_train=True):
+    def __init__(self, anno_path, test_id, is_train=True):
         self.anno_path = anno_path
         self.is_train = is_train
         self.attributes_mean = {}
@@ -57,7 +57,7 @@ class tooth_dataset_train():
         self.num_teeth = 0 
         for line in r:
             train_flag = line[2]
-            if not 'train' in train_flag:
+            if  str(test_id) in train_flag or 'val' in train_flag:
                 continue
             tooth_id = str(line[3])
             tooth_path = line[1]
@@ -163,7 +163,7 @@ class tooth_dataset_train():
         
         
 class tooth_dataset_test():
-    def __init__(self, anno_path, is_train=False):
+    def __init__(self, anno_path, test_id, is_train=False):
         self.anno_path = anno_path
         self.is_train = is_train
         self.attributes = {'11':[],'12':[],'21':[],'22':[]}
@@ -178,7 +178,7 @@ class tooth_dataset_test():
         self.num_teeth = 0 
         for line in r:
             train_flag = line[2]
-            if not 'test' in train_flag:
+            if not str(test_id) in train_flag :
                 continue
             tooth_id = str(line[3])
             tooth_path = line[1]
@@ -287,7 +287,7 @@ class tooth_dataset_test():
 
 
 class tooth_dataset_train_test():
-    def __init__(self, anno_path, is_train=True):
+    def __init__(self, anno_path,test_id, is_train=True):
         self.anno_path = anno_path
         self.is_train = is_train
         self.attributes_mean = {}
@@ -302,7 +302,7 @@ class tooth_dataset_train_test():
         self.num_teeth = 0 
         for line in r:
             train_flag = line[2]
-            if not 'train' in train_flag:
+            if  test_id in train_flag:
                 continue
             tooth_id = str(line[3])
             tooth_path = line[1]

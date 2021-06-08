@@ -5,14 +5,19 @@ import numpy as np
 import torch
 from torch.autograd import Function
 from torchvision import models, transforms
-
+import torchvision
 import os
 import numpy as np
 import shutil
 from torch.nn import DataParallel
 from datetime import datetime
 from torch.optim.lr_scheduler import MultiStepLR
-from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir, max_epoch, need_attributes_idx,use_uniform_mean,anno_csv_path, use_gpu, save_name, model_size, predtrain
+from config import BATCH_SIZE, PROPOSAL_NUM, SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir, max_epoch, need_attributes_idx,use_uniform_mean,anno_csv_path, use_gpu, save_name, model_size, pretrain
+
+
+from config import BATCH_SIZE,  SAVE_FREQ, LR, WD, resume, save_dir,use_attribute, file_dir_test, max_epoch, need_attributes_idx,use_uniform_mean,test_anno_csv_path, use_gpu, load_model_path,test_save_name,anno_csv_path,   model_size, pretrain, bigger, model_name,load_file, load_time
+
+
 from core import model, dataset,resnet
 from core.utils import init_log, progress_bar
 import pandas as pd
@@ -273,7 +278,7 @@ def write_output(image_path, output_path, grad_cam, model, use_cuda, target_cate
     # Opencv loads as BGR:
     img = img[:, :, ::-1]
     img = cv2.resize(img, (224,224), interpolation = cv2.INTER_AREA)
-    
+    #embed()
     print("after resize image shape",img.shape)
     img_c = img.copy().transpose(2,0,1)
     input_img = torch.tensor(img_c).unsqueeze(0)#preprocess_image(img)
@@ -301,9 +306,9 @@ def write_output(image_path, output_path, grad_cam, model, use_cuda, target_cate
     gb = deprocess_image(gb)
 
     cv2.imwrite(output_path + "cam.jpg", cam)
-    cv2.imwrite(output_path + "fc_cam.jpg", fc_cam)
+    #cv2.imwrite(output_path + "fc_cam.jpg", fc_cam)
     cv2.imwrite(output_path + 'gb.jpg', gb)
-    cv2.imwrite(output_path + 'cam_gb.jpg', cam_gb)
+    #cv2.imwrite(output_path + 'cam_gb.jpg', cam_gb)
 
 if __name__ == '__main__':
     """ python grad_cam.py <path_to_image>
@@ -315,9 +320,14 @@ if __name__ == '__main__':
 
     #args = get_args()
     use_cuda = False
-    
+    num_of_need_attri = len(need_attributes_idx)
+    test_id =0 
     num_of_need_attri = 3 #len(need_attributes_idx)
+    
+    
+    
     model = resnet.resnet101(pretrained=False,num_classes = num_of_need_attri)
+    
     model.eval()
     load_model_path = os.path.join(save_dir, '20210219_171456part0_Feb19res101','model_param.pkl')
     if load_model_path:
@@ -347,14 +357,14 @@ if __name__ == '__main__':
                     output_path = image_path.replace('.tif','')
                     write_output(image_path, output_path, grad_cam, model, use_cuda, target_category,gb_model)
     
-    output_path =''
     num_id = '015'
-    image_path = "/data/shimr/teeth/220/"
+    image_path = "/data/shimr/teeth/204/cropped_image204,22 Maxilla, Application.tif"
+    output_path = "/data/shimr/visual/"
     #print(os.listdir(image_path))
-    for p in os.listdir(image_path):
-        if p.startswith('crop'):
-            image_path = os.path.join(image_path,p)
-            break 
+    #for p in os.listdir(image_path):
+    #    if p.startswith('crop'):
+    #        image_path = os.path.join(image_path,p)
+    #        break 
     write_output(image_path, output_path, grad_cam, model, use_cuda, target_category,gb_model)
     
     """
